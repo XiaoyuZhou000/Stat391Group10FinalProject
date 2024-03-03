@@ -1,0 +1,12 @@
+---
+title: "code"
+author: "Group10"
+date: "2024-03-03"
+output: html_document
+---
+
+# Inport dataset
+```{r}
+hr_data <- read.csv("./HR_Analytics.csv")
+```
+
