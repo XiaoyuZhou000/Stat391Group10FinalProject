@@ -1,6 +1,6 @@
 ---
-title: "code"
-author: "Group10"
+title: "Group 10 Code"
+author: "Group 10"
 date: "2024-03-03"
 output: html_document
 ---
@@ -9,4 +9,67 @@ output: html_document
 ```{r}
 hr_data <- read.csv("./HR_Analytics.csv")
 ```
+
+# 1. What numerical variables have the most impact on MonthlyIncome? Can we build a predictive model with reasonable performance to predict a employee's monthly income(MonthlyIncome)?
+
+By general understanding, there are some numerical variables that may also have impact on `MonthlyIncome`.
+1. Age: Generally, with age comes more work experience, which can often lead to higher salaries. 
+2. DailyRate: Higher daily rates could suggest higher overall compensation packages.
+3. DistanceFromHome: companies may offer higher salaries to attract talent who have a longer commute.
+4. TotalWorkingYears: TotalWorkingYears reflects an employee's experience level. 
+5. YearsAtCompany: Long-term employees may have received more incremental salary increases and promotions than newer employees.
+So we can do a correlation matrix to these variables
+```{r}
+cor(hr_data[c("MonthlyIncome", "Age", "DailyRate", "DistanceFromHome", "TotalWorkingYears", "YearsAtCompany")])
+```
+By the correlation matrix, we can see `TotalWorkingYears` has the most impact on `MonthlyIncome` and `DailyRate` has has less impact on `MonthlyIncome`.
+
+Before we actually fit our model, We can use the scatter plot to check the linearity between them first.
+```{r}
+pairs(~MonthlyIncome + Age + DailyRate + DistanceFromHome + TotalWorkingYears + YearsAtCompany, data = hr_data)
+```
+Since `age`, `TotalWorkingYears`, and `YearsAtCompany` has high linearity relationship, for the accurate of the coefficient, I decide to only keep `TotalWorkingYears` as our attribute. That is the numerical variables we will use are  `DailyRate`, `DistanceFromHome`, `TotalWorkingYears`.
+
+By general understanding, there are some categorical variables that may also have impact on `MonthlyIncome`. We can include these variables in our model too.
+1. JobRole: Different job roles are associated with different pay scales. 
+2. Department: Pay scales can vary across departments depending on their function within the company. 
+3. EducationField: The field of study can influence starting salaries and income growth. 
+4. Education: The level of education attained can have a significant impact on earning potential. 
+5. Gender: There are known gender pay gaps in many industries and roles.
+6. BusinessTravel: The amount of travel required for a job might impact salary. 
+7. OverTime: Employees who work overtime may have a higher MonthlyIncome due to overtime pay.
+
+Before apply linear fit on categorical variables, we need to factorize them first.
+```{r}
+hr_data_flitered <- hr_data[,c("MonthlyIncome", "Age", "DailyRate", "DistanceFromHome", "TotalWorkingYears", "YearsAtCompany", "JobRole", "Department", "EducationField", "Education", "Gender", "BusinessTravel", "OverTime")]
+hr_data_flitered$JobRole <- as.factor(hr_data_flitered$JobRole)
+hr_data_flitered$Department <- as.factor(hr_data_flitered$Department)
+hr_data_flitered$EducationField <- as.factor(hr_data_flitered$EducationField)
+hr_data_flitered$Education <- as.factor(hr_data_flitered$Education)
+hr_data_flitered$Gender <- as.factor(hr_data_flitered$Gender)
+hr_data_flitered$BusinessTravel <- as.factor(hr_data_flitered$BusinessTravel)
+hr_data_flitered$OverTime <- as.factor(hr_data_flitered$OverTime)
+```
+
+Fit the model
+```{r}
+model <- lm(MonthlyIncome ~ DailyRate+DistanceFromHome+TotalWorkingYears+JobRole+Department+EducationField+Education+Gender+BusinessTravel+OverTime, data=hr_data_flitered)
+summary(model)
+```
+
+We can calculate the residual of the model to peek the overall performance of the graph.
+```{r}
+qqnorm(residuals(model))
+qqline(residuals(model), col = "red")
+```
+## Quick Analysis On This QQPlot
+The main diagonal line (in red) represents where the points would lie if the residuals were perfectly normally distributed.
+
+The points represent the actual quantiles of the residuals from your model.
+
+The points fall approximately along the red reference line, especially in the middle portion of the plot (around the -2 to 2 range on the x-axis), it suggests that the residuals are normally distributed. This is a good sign and is typical for residuals of a well-fitting model.
+
+However, there are some deviations at the ends, particularly in the upper right corner. The residuals here are higher than what would be expected under a perfect normal distribution. This could indicate the presence of outliers or that the residuals have heavy tails, which is common in real-world data.
+
+# 2. Is this a linear model of monthly income(MonthlyIncome) a good fit in this data?
 
