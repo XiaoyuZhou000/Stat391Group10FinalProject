@@ -7,17 +7,17 @@ library(caret)
 library(MASS)
 library(car)
 
+```{r}
 dat <- read.csv("./HR_Analytics.csv")
 summary(dat)
-
+```
+```{r}
 # Drop unrelated columns
-
 constant_cols <- sapply(dat, function(x) length(unique(x)) == 1)
-
 data <- dat[, !constant_cols]
-
 data <- data[-c(1, 11)]
-
+```
+```{r}
 # Convert categorical variables into numeric variables.
 data$OverTime <- as.integer(factor(data$OverTime)) - 1
 data$SalarySlab <- as.integer(factor(data$SalarySlab)) - 1
@@ -29,17 +29,21 @@ data$Department <- as.integer(factor(data$Department)) - 1
 data$BusinessTravel <- as.integer(factor(data$BusinessTravel)) - 1
 data$Attrition <- as.integer(factor(data$Attrition)) - 1
 data$AgeGroup <- as.integer(factor(data$AgeGroup)) - 1
-
+```
+```{r}
 # Create correlation matrix
 cor_matrix <- cor(data, use = "complete.obs")
-
+```
+```{r}
 # Extract correlations with Monthly Income
 income_corr <- cor_matrix['MonthlyIncome',]
 sorted_corr <- sort(income_corr, decreasing = TRUE)
-
+```
+```{r}
 # Remove the correlation of 'Monthly Income' with itself
 sorted_corr[sorted_corr != 1]
-
+```
+```{r}
 # Plot each variable against MonthlyIncome in 2 times 2 matrix
 par(mfrow = c(2, 2))
 
@@ -75,33 +79,38 @@ plot(data$MaritalStatus, data$MonthlyIncome, main = "MaritalStatus vs MonthlyInc
 plot(data$JobRole, data$MonthlyIncome, main = "JobRole vs MonthlyIncome")
 plot(data$Attrition, data$MonthlyIncome, main = "Attrition vs MonthlyIncome")
 plot(data$SalarySlab, data$MonthlyIncome, main = "SalarySlab vs MonthlyIncome")
-
+```
+```{r}
 # Full linear regression model
 model_full <- lm(MonthlyIncome ~ ., data = data)
 summary(model_full)
-
+```
+```{r}
 # Filter out the uncorrelated predictor based on correlation values and plots.
 model_reduced1 <- lm(MonthlyIncome ~ Department + DistanceFromHome + JobLevel + JobRole + SalarySlab + Age + TotalWorkingYears + YearsWithCurrManager, data)
 summary(model_reduced1)
-
+```
+```{r}
 # Refine the model using stepwise regression
 model_step <- stepAIC(model_full, direction = "both")
 summary(model_step)
 
 plot(fitted(model_step), residuals(model_step), main="Residuals vs Predicted Values", xlab="Predicted Values", ylab="Residuals")
 abline(h=0, col="gold")
-
+```
+```{r}
 # Check heteroskedasticity
 bptest(model_step)
-
+```
+```{r}
 # Check normality
 qqnorm(residuals(model_step))
 qqline(residuals(model_step), col = "gold")
+```
 
 
 
-
-
+```{r}
 # Refine the data using LASSO regression
 target <- 'MonthlyIncome'
 x <- data[, !(names(data) %in% target)]
@@ -125,7 +134,7 @@ x_val <- x_val_test[valIndex, ]
 y_val <- y_val_test[valIndex]
 x_test <- x_val_test[-valIndex, ]
 y_test <- y_val_test[-valIndex]
-
+```
 lm_model <- train(
   x = x_train,
   y = y_train,
@@ -143,23 +152,23 @@ cat("MSE on validation set:", mse, "\n")
 
 final_lm_model <- lm_model$finalModel
 summary(final_lm_model)
-
+```
+```{r}
 # Extract coefficients from the linear regression model
 lm_coef <- coef(final_lm_model)
 
 # Plot the coefficients
 barplot(lm_coef, main = "Linear Regression Model Coefficients", xlab = "Variables", ylab = "Coefficient Value")
-
+```
+```{r}
 residuals <- y_val - predictions
 
 # Scatter plot of residuals vs predicted values
 plot(predictions, residuals, pch = 16, col = "blue", xlab = "Predicted", ylab = "Residuals", main = "Residuals vs Predicted")
-
-# Add a horizontal line
 abline(h = 0, col = "red", lty = 2)
-
+```
+```{r}
 # Scatter plot of actual vs predicted values
 plot(y_val, predictions, pch = 16, col = "blue", xlab = "Actual", ylab = "Predicted", main = "Actual vs Predicted Values")
-
-# Add a reference line
 abline(0, 1, col = "red", lty = 2, lwd = 2)
+```
