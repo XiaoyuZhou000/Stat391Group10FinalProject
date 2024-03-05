@@ -148,30 +148,30 @@ x_test <- x_val_test[-valIndex, ]
 y_test <- y_val_test[-valIndex]
 ```
 ```{r}
-lm_model <- train(
+model_lasso <- train(
   x = x_train,
   y = y_train,
-  method = "lm",
-  trControl = trainControl(method = "cv", number = 5),
-  tuneGrid = expand.grid(intercept = TRUE)
+  method = "glmnet",
+  trControl = trainControl(method = "cv", number = 10),
+  tuneGrid = expand.grid(alpha = 1, lambda = seq(0.001, 0.1, length = 10))
 )
 
 # Predict on the validation set
-predictions <- predict(lm_model, x_val)
+predictions <- predict(model_lasso, x_val)
 
 # Calculate MSE on the validation set
 mse <- mean((predictions - y_val)^2)
 cat("MSE on validation set:", mse, "\n")
 
-final_lm_model <- lm_model$finalModel
-summary(final_lm_model)
+model_lasso_final <- lm_model$finalModel
+summary(model_lasso_final)
 ```
 ```{r}
 # Extract coefficients from the linear regression model
-lm_coef <- coef(final_lm_model)
+coef <- coef(model_lasso_final)
 
 # Plot the coefficients
-barplot(lm_coef, main = "Linear Regression Model Coefficients", xlab = "Variables", ylab = "Coefficient Value")
+barplot(coef, main = "Linear Regression Model Coefficients", xlab = "Variables", ylab = "Coefficient Value")
 ```
 ```{r}
 residuals <- y_val - predictions
