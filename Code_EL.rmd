@@ -1,11 +1,13 @@
-library(tidyverse)
-library(lmtest)
-library(dplyr)
-library(ggplot2)
-library(GGally)
-library(caret)
-library(MASS)
-library(car)
+```{r}
+# library(tidyverse)
+# library(lmtest)
+# library(dplyr)
+# library(ggplot2)
+# library(GGally)
+# library(caret)
+# library(MASS)
+# library(car)
+```
 
 ```{r}
 dat <- read.csv("./HR_Analytics.csv")
