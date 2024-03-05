@@ -1,0 +1,166 @@
+library(tidyverse)
+library(lmtest)
+library(openxlsx)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(caret)
+library(MASS)
+library(car)
+
+dat <- read.xlsx("/Users/stlp/Documents/STAT391/final project/HR_Analytics.xlsx")
+summary(dat)
+
+# Drop unrelated columns
+
+constant_cols <- sapply(dat, function(x) length(unique(x)) == 1)
+
+data <- dat[, !constant_cols]
+
+data <- data[-c(1, 11)]
+
+# Convert categorical variables into numeric variables.
+data$OverTime <- as.integer(factor(data$OverTime)) - 1
+data$SalarySlab <- as.integer(factor(data$SalarySlab)) - 1
+data$MaritalStatus <- as.integer(factor(data$MaritalStatus)) - 1
+data$JobRole <- as.integer(factor(data$JobRole)) - 1
+data$Gender <- as.integer(factor(data$Gender)) - 1
+data$EducationField <- as.integer(factor(data$EducationField)) - 1
+data$Department <- as.integer(factor(data$Department)) - 1
+data$BusinessTravel <- as.integer(factor(data$BusinessTravel)) - 1
+data$Attrition <- as.integer(factor(data$Attrition)) - 1
+data$AgeGroup <- as.integer(factor(data$AgeGroup)) - 1
+
+# Create correlation matrix
+cor_matrix <- cor(data, use = "complete.obs")
+
+# Extract correlations with Monthly Income
+income_corr <- cor_matrix['MonthlyIncome',]
+sorted_corr <- sort(income_corr, decreasing = TRUE)
+
+# Remove the correlation of 'Monthly Income' with itself
+sorted_corr[sorted_corr != 1]
+
+# Plot each variable against MonthlyIncome in 2 times 2 matrix
+par(mfrow = c(2, 2))
+
+plot(data$JobLevel, data$MonthlyIncome, main = "JobLevel vs MonthlyIncome")
+plot(data$TotalWorkingYears, data$MonthlyIncome, main = "TotalWorkingYears vs MonthlyIncome")
+plot(data$YearsAtCompany, data$MonthlyIncome, main = "YearsAtCompany vs MonthlyIncome")
+plot(data$Age, data$MonthlyIncome, main = "Age vs MonthlyIncome")
+plot(data$AgeGroup, data$MonthlyIncome, main = "AgeGroup vs MonthlyIncome")
+plot(data$YearsInCurrentRole, data$MonthlyIncome, main = "YearsInCurrentRole vs MonthlyIncome")
+plot(data$YearsSinceLastPromotion, data$MonthlyIncome, main = "YearsSinceLastPromotion vs MonthlyIncome")
+plot(data$YearsWithCurrManager, data$MonthlyIncome, main = "YearsWithCurrManager vs MonthlyIncome")
+plot(data$NumCompaniesWorked, data$MonthlyIncome, main = "NumCompaniesWorked vs MonthlyIncome")
+plot(data$Education, data$MonthlyIncome, main = "Education vs MonthlyIncome")
+plot(data$Department, data$MonthlyIncome, main = "Department vs MonthlyIncome")
+plot(data$MonthlyRate, data$MonthlyIncome, main = "MonthlyRate vs MonthlyIncome")
+plot(data$BusinessTravel, data$MonthlyIncome, main = "BusinessTravel vs MonthlyIncome")
+plot(data$WorkLifeBalance, data$MonthlyIncome, main = "WorkLifeBalance vs MonthlyIncome")
+plot(data$RelationshipSatisfaction, data$MonthlyIncome, main = "RelationshipSatisfaction vs MonthlyIncome")
+plot(data$OverTime, data$MonthlyIncome, main = "OverTime vs MonthlyIncome")
+plot(data$DailyRate, data$MonthlyIncome, main = "DailyRate vs MonthlyIncome")
+plot(data$StockOptionLevel, data$MonthlyIncome, main = "StockOptionLevel vs MonthlyIncome")
+plot(data$EnvironmentSatisfaction, data$MonthlyIncome, main = "EnvironmentSatisfaction vs MonthlyIncome")
+plot(data$JobSatisfaction, data$MonthlyIncome, main = "JobSatisfaction vs MonthlyIncome")
+plot(data$HourlyRate, data$MonthlyIncome, main = "HourlyRate vs MonthlyIncome")
+plot(data$PerformanceRating, data$MonthlyIncome, main = "PerformanceRating vs MonthlyIncome")
+plot(data$DistanceFromHome, data$MonthlyIncome, main = "DistanceFromHome vs MonthlyIncome")
+plot(data$JobInvolvement, data$MonthlyIncome, main = "JobInvolvement vs MonthlyIncome")
+plot(data$PercentSalaryHike, data$MonthlyIncome, main = "PercentSalaryHike vs MonthlyIncome")
+plot(data$TrainingTimesLastYear, data$MonthlyIncome, main = "TrainingTimesLastYear vs MonthlyIncome")
+plot(data$Gender, data$MonthlyIncome, main = "Gender vs MonthlyIncome")
+plot(data$EducationField, data$MonthlyIncome, main = "EducationField vs MonthlyIncome")
+plot(data$MaritalStatus, data$MonthlyIncome, main = "MaritalStatus vs MonthlyIncome")
+plot(data$JobRole, data$MonthlyIncome, main = "JobRole vs MonthlyIncome")
+plot(data$Attrition, data$MonthlyIncome, main = "Attrition vs MonthlyIncome")
+plot(data$SalarySlab, data$MonthlyIncome, main = "SalarySlab vs MonthlyIncome")
+
+# Full linear regression model
+model_full <- lm(MonthlyIncome ~ ., data = data)
+summary(model_full)
+
+# Filter out the uncorrelated predictor based on correlation values and plots.
+model_reduced1 <- lm(MonthlyIncome ~ Department + DistanceFromHome + JobLevel + JobRole + SalarySlab + Age + TotalWorkingYears + YearsWithCurrManager, data)
+summary(model_reduced1)
+
+# Refine the model using stepwise regression
+model_step <- stepAIC(model_full, direction = "both")
+summary(model_step)
+
+plot(fitted(model_step), residuals(model_step), main="Residuals vs Predicted Values", xlab="Predicted Values", ylab="Residuals")
+abline(h=0, col="gold")
+
+# Check heteroskedasticity
+bptest(model_step)
+
+# Check normality
+qqnorm(residuals(model_step))
+qqline(residuals(model_step), col = "gold")
+
+
+
+
+
+# Refine the data using LASSO regression
+target <- 'MonthlyIncome'
+x <- data[, !(names(data) %in% target)]
+y <- data[[target]]
+
+# Normalize variables
+preProcessDesc <- preProcess(x, method = c("center", "scale"))
+x_scaled <- predict(preProcessDesc, x)
+
+# Split the data into training, validation, and test sets
+set.seed(42)
+trainIndex <- createDataPartition(y, p = 0.8, list = FALSE)
+x_train <- x_scaled[trainIndex, ]
+y_train <- y[trainIndex]
+remaining <- setdiff(1:length(y), trainIndex)
+x_val_test <- x_scaled[remaining, ]
+y_val_test <- y[remaining]
+
+valIndex <- createDataPartition(y_val_test, p = 0.5, list = FALSE)
+x_val <- x_val_test[valIndex, ]
+y_val <- y_val_test[valIndex]
+x_test <- x_val_test[-valIndex, ]
+y_test <- y_val_test[-valIndex]
+
+lm_model <- train(
+  x = x_train,
+  y = y_train,
+  method = "lm",
+  trControl = trainControl(method = "cv", number = 5),
+  tuneGrid = expand.grid(intercept = TRUE)
+)
+
+# Predict on the validation set
+predictions <- predict(lm_model, newdata = x_val)
+
+# Calculate MSE on the validation set
+mse <- mean((predictions - y_val)^2)
+cat("MSE on validation set:", mse, "\n")
+
+final_lm_model <- lm_model$finalModel
+summary(final_lm_model)
+
+# Extract coefficients from the linear regression model
+lm_coef <- coef(final_lm_model)
+
+# Plot the coefficients
+barplot(lm_coef, main = "Linear Regression Model Coefficients", xlab = "Variables", ylab = "Coefficient Value")
+
+residuals <- y_val - predictions
+
+# Scatter plot of residuals vs predicted values
+plot(predictions, residuals, pch = 16, col = "blue", xlab = "Predicted", ylab = "Residuals", main = "Residuals vs Predicted")
+
+# Add a horizontal line
+abline(h = 0, col = "red", lty = 2)
+
+# Scatter plot of actual vs predicted values
+plot(y_val, predictions, pch = 16, col = "blue", xlab = "Actual", ylab = "Predicted", main = "Actual vs Predicted Values")
+
+# Add a reference line
+abline(0, 1, col = "red", lty = 2, lwd = 2)
