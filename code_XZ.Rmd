@@ -71,7 +71,7 @@ The points fall approximately along the red reference line, especially in the mi
 
 However, there are some deviations at the ends, particularly in the upper right corner. The residuals here are higher than what would be expected under a perfect normal distribution. This could indicate the presence of outliers or that the residuals have heavy tails, which is common in real-world data.
 
-``{r}
+```{r}
 # K-fold validation
 set.seed(123)
 k <- 10

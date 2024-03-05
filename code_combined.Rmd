@@ -1,0 +1,21 @@
+import data and set seed
+```{r}
+hr_data <- read.csv("./HR_Analytics.csv")
+set.seed(391)
+```
+
+## 1.Which numerical factors significantly influence the monthly income (MonthlyIncome)?
+
+By general understanding, there are some numerical variables that may also have impact on `MonthlyIncome`.
+1. Age: Generally, with age comes more work experience, which can often lead to higher salaries. 
+2. DailyRate: Higher daily rates could suggest higher overall compensation packages.
+3. DistanceFromHome: companies may offer higher salaries to attract talent who have a longer commute.
+4. TotalWorkingYears: TotalWorkingYears reflects an employee's experience level. 
+5. YearsAtCompany: Long-term employees may have received more incremental salary increases and promotions than newer employees.
+So we can do a correlation matrix to these variables
+```{r}
+cor(hr_data[c("MonthlyIncome", "Age", "DailyRate", "DistanceFromHome", "TotalWorkingYears", "YearsAtCompany")])
+```
+By the correlation matrix, we can see `TotalWorkingYears` has the most impact on `MonthlyIncome` and `DailyRate` has has less impact on `MonthlyIncome`.
+
+## 2.
