@@ -135,6 +135,7 @@ y_val <- y_val_test[valIndex]
 x_test <- x_val_test[-valIndex, ]
 y_test <- y_val_test[-valIndex]
 ```
+```{r}
 lm_model <- train(
   x = x_train,
   y = y_train,
