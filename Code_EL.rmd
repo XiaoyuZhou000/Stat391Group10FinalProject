@@ -84,7 +84,7 @@ plot(data$SalarySlab, data$MonthlyIncome, main = "SalarySlab vs MonthlyIncome")
 ```
 ```{r}
 # Full linear regression model
-model_full <- lm(MonthlyIncome ~ ., data = data)
+model_full <- lm(MonthlyIncome ~ ., data)
 summary(model_full)
 ```
 ```{r}
@@ -147,7 +147,7 @@ lm_model <- train(
 )
 
 # Predict on the validation set
-predictions <- predict(lm_model, newdata = x_val)
+predictions <- predict(lm_model, x_val)
 
 # Calculate MSE on the validation set
 mse <- mean((predictions - y_val)^2)
