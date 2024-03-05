@@ -6,6 +6,10 @@ Used dataset: [HR_Analytics](https://www.kaggle.com/datasets/mohammadkaiftahir/h
 
 ## Research Question
 
-1. What numerical variables have the most impact on MonthlyIncome? Can we build a predictive model with reasonable performance to predict a employee's monthly income(MonthlyIncome)?
+1. Which numerical factors significantly influence the monthly income (MonthlyIncome)?
 
-2. Is this a linear model of monthly income(MonthlyIncome) a good fit in this data?
+2. Is it feasible to apply a linear regression model to predict monthly income (MonthlyIncome)?
+
+3. Can a more complex model be developed to address multicollinearity issues in predicting monthly income (MonthlyIncome)?
+
+4. Between the models considered, which one demonstrates superior predictive performance?
