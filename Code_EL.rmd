@@ -1,6 +1,5 @@
 library(tidyverse)
 library(lmtest)
-library(openxlsx)
 library(dplyr)
 library(ggplot2)
 library(GGally)
@@ -8,7 +7,7 @@ library(caret)
 library(MASS)
 library(car)
 
-dat <- read.xlsx("/Users/stlp/Documents/STAT391/final project/HR_Analytics.xlsx")
+dat <- read.csv("./HR_Analytics.csv")
 summary(dat)
 
 # Drop unrelated columns
