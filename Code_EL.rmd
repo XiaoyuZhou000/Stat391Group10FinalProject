@@ -119,8 +119,31 @@ bptest(model_step)
 qqnorm(residuals(model_step))
 qqline(residuals(model_step), col = "gold")
 ```
+```{r}
+# K-fold validation
+set.seed(123)
+k <- 10
+folds <- cut(seq(1, nrow(data)), breaks=k, labels=FALSE)
 
+results <- rep(NA, k)
 
+for(i in 1:k){
+  testIndexes <- which(folds==i, arr.ind=TRUE)
+  testData <- data[testIndexes, ]
+  trainData <- data[-testIndexes, ]
+
+  # Fit the model on training data
+  model <- lm(model_step, trainData)
+
+  # Predict on test data
+  predictions <- predict(model, testData)
+
+  # Compute Mean Squared Error
+  results[i] <- mean((predictions - testData$MonthlyIncome)^2)
+}
+
+mean(results)
+```
 
 ```{r}
 # Refine the data using LASSO regression
