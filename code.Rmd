@@ -71,5 +71,33 @@ The points fall approximately along the red reference line, especially in the mi
 
 However, there are some deviations at the ends, particularly in the upper right corner. The residuals here are higher than what would be expected under a perfect normal distribution. This could indicate the presence of outliers or that the residuals have heavy tails, which is common in real-world data.
 
+``{r}
+# K-fold validation
+set.seed(123)
+k <- 10
+folds <- cut(seq(1, nrow(hr_data_flitered)), breaks=k, labels=FALSE)
+
+results <- rep(NA, k)
+
+for(i in 1:k){
+  testIndexes <- which(folds==i, arr.ind=TRUE)
+  testData <- hr_data_flitered[testIndexes, ]
+  trainData <- hr_data_flitered[-testIndexes, ]
+
+  # Fit the model on training data
+  model_train <- lm(model, trainData)
+
+  # Predict on test data
+  predictions <- predict(model_train, testData)
+
+  # Compute Mean Squared Error
+  results[i] <- mean((predictions - testData$MonthlyIncome)^2)
+}
+
+mean(results)
+```
+
+
+
 # 2. Is this a linear model of monthly income(MonthlyIncome) a good fit in this data?
 
