@@ -40,6 +40,16 @@ model_null <- lm(YearsWithCurrManager~., data_not_null)
 model_YWC <- stepAIC(model_null, direction = "both")
 predict_null <- predict(model_YWC, data_null)
 data$YearsWithCurrManager[is.na(data$YearsWithCurrManager)] <- predict_null
+data$YearsWithCurrManager <- round(data$YearsWithCurrManager)
+```
+```{r}
+data_not_null <- data[!is.na(data$YearsWithCurrManager), ]
+data_null <- data[is.na(data$YearsWithCurrManager), ]
+
+model_null <- lm(YearsWithCurrManager~., data_not_null)
+model_YWC <- stepAIC(model_null, direction = "both")
+predict_null <- predict(model_YWC, data_null)
+data$YearsWithCurrManager[is.na(data$YearsWithCurrManager)] <- predict_null
 ```
 
 ```{r}
