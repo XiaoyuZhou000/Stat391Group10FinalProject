@@ -1,10 +1,28 @@
 import data and set seed
 ```{r}
-hr_data <- read.csv("./HR_Analytics.csv")
+data <- read.csv("./HR_Analytics.csv")
 set.seed(391)
 ```
 
-## 1.Which numerical factors significantly influence the monthly income (MonthlyIncome)?
+preprocess
+```{r}
+constant_cols <- sapply(dat, function(x) length(unique(x)) == 1)
+data <- dat[, !constant_cols]
+data <- data[-c(1, 11)]
+data$OverTime <- as.integer(factor(data$OverTime)) - 1
+data$SalarySlab <- as.integer(factor(data$SalarySlab)) - 1
+data$MaritalStatus <- as.integer(factor(data$MaritalStatus)) - 1
+data$JobRole <- as.integer(factor(data$JobRole)) - 1
+data$Gender <- as.integer(factor(data$Gender)) - 1
+data$EducationField <- as.integer(factor(data$EducationField)) - 1
+data$Department <- as.integer(factor(data$Department)) - 1
+data$BusinessTravel <- as.integer(factor(data$BusinessTravel)) - 1
+data$Attrition <- as.integer(factor(data$Attrition)) - 1
+data$AgeGroup <- as.integer(factor(data$AgeGroup)) - 1
+data$YearsWithCurrManager[is.na(data$YearsWithCurrManager)] <- predict_null
+```
+
+## 1. Which numerical factors significantly influence the monthly income (MonthlyIncome)?
 
 By general understanding, there are some numerical variables that may also have impact on `MonthlyIncome`.
 1. Age: Generally, with age comes more work experience, which can often lead to higher salaries. 
@@ -14,8 +32,125 @@ By general understanding, there are some numerical variables that may also have 
 5. YearsAtCompany: Long-term employees may have received more incremental salary increases and promotions than newer employees.
 So we can do a correlation matrix to these variables
 ```{r}
-cor(hr_data[c("MonthlyIncome", "Age", "DailyRate", "DistanceFromHome", "TotalWorkingYears", "YearsAtCompany")])
+cor(data[c("MonthlyIncome", "Age", "DailyRate", "DistanceFromHome", "TotalWorkingYears", "YearsAtCompany")])
 ```
 By the correlation matrix, we can see `TotalWorkingYears` has the most impact on `MonthlyIncome` and `DailyRate` has has less impact on `MonthlyIncome`.
 
-## 2.
+## 2. Is it feasible to apply a linear regression model to predict monthly income (MonthlyIncome)?
+```{r}
+# Full linear regression model
+model_full <- lm(MonthlyIncome ~ ., data)
+summary(model_full)
+```
+Explore correlation between each variable
+```{r}
+# Plot each variable against MonthlyIncome in 2 times 2 matrix
+par(mfrow = c(2, 2))
+
+plot(data$JobLevel, data$MonthlyIncome, main = "JobLevel vs MonthlyIncome")
+plot(data$TotalWorkingYears, data$MonthlyIncome, main = "TotalWorkingYears vs MonthlyIncome")
+plot(data$YearsAtCompany, data$MonthlyIncome, main = "YearsAtCompany vs MonthlyIncome")
+plot(data$Age, data$MonthlyIncome, main = "Age vs MonthlyIncome")
+plot(data$AgeGroup, data$MonthlyIncome, main = "AgeGroup vs MonthlyIncome")
+plot(data$YearsInCurrentRole, data$MonthlyIncome, main = "YearsInCurrentRole vs MonthlyIncome")
+plot(data$YearsSinceLastPromotion, data$MonthlyIncome, main = "YearsSinceLastPromotion vs MonthlyIncome")
+plot(data$YearsWithCurrManager, data$MonthlyIncome, main = "YearsWithCurrManager vs MonthlyIncome")
+plot(data$NumCompaniesWorked, data$MonthlyIncome, main = "NumCompaniesWorked vs MonthlyIncome")
+plot(data$Education, data$MonthlyIncome, main = "Education vs MonthlyIncome")
+plot(data$Department, data$MonthlyIncome, main = "Department vs MonthlyIncome")
+plot(data$MonthlyRate, data$MonthlyIncome, main = "MonthlyRate vs MonthlyIncome")
+plot(data$BusinessTravel, data$MonthlyIncome, main = "BusinessTravel vs MonthlyIncome")
+plot(data$WorkLifeBalance, data$MonthlyIncome, main = "WorkLifeBalance vs MonthlyIncome")
+plot(data$RelationshipSatisfaction, data$MonthlyIncome, main = "RelationshipSatisfaction vs MonthlyIncome")
+plot(data$OverTime, data$MonthlyIncome, main = "OverTime vs MonthlyIncome")
+plot(data$DailyRate, data$MonthlyIncome, main = "DailyRate vs MonthlyIncome")
+plot(data$StockOptionLevel, data$MonthlyIncome, main = "StockOptionLevel vs MonthlyIncome")
+plot(data$EnvironmentSatisfaction, data$MonthlyIncome, main = "EnvironmentSatisfaction vs MonthlyIncome")
+plot(data$JobSatisfaction, data$MonthlyIncome, main = "JobSatisfaction vs MonthlyIncome")
+plot(data$HourlyRate, data$MonthlyIncome, main = "HourlyRate vs MonthlyIncome")
+plot(data$PerformanceRating, data$MonthlyIncome, main = "PerformanceRating vs MonthlyIncome")
+plot(data$DistanceFromHome, data$MonthlyIncome, main = "DistanceFromHome vs MonthlyIncome")
+plot(data$JobInvolvement, data$MonthlyIncome, main = "JobInvolvement vs MonthlyIncome")
+plot(data$PercentSalaryHike, data$MonthlyIncome, main = "PercentSalaryHike vs MonthlyIncome")
+plot(data$TrainingTimesLastYear, data$MonthlyIncome, main = "TrainingTimesLastYear vs MonthlyIncome")
+plot(data$Gender, data$MonthlyIncome, main = "Gender vs MonthlyIncome")
+plot(data$EducationField, data$MonthlyIncome, main = "EducationField vs MonthlyIncome")
+plot(data$MaritalStatus, data$MonthlyIncome, main = "MaritalStatus vs MonthlyIncome")
+plot(data$JobRole, data$MonthlyIncome, main = "JobRole vs MonthlyIncome")
+plot(data$Attrition, data$MonthlyIncome, main = "Attrition vs MonthlyIncome")
+plot(data$SalarySlab, data$MonthlyIncome, main = "SalarySlab vs MonthlyIncome")
+# Create correlation matrix
+cor_matrix <- cor(data, use = "complete.obs")
+cor_matrix
+```
+
+```{r}
+# Filter out the uncorrelated predictor based on correlation values and plots.
+model_reduced1 <- lm(MonthlyIncome ~ Department + DistanceFromHome + JobLevel + JobRole + SalarySlab + Age + TotalWorkingYears + YearsWithCurrManager, data)
+summary(model_reduced1)
+```
+
+## 3. Can a more complex model be developed to address multicollinearity issues in predicting monthly income (MonthlyIncome)?
+```{r}
+# Refine the model using stepwise regression
+model_step <- stepAIC(model_full, direction = "both")
+summary(model_step)
+
+
+
+plot(fitted(model_step), residuals(model_step), main="Residuals vs Predicted Values", xlab="Predicted Values", ylab="Residuals")
+abline(h=0, col="red")
+```
+
+```{r}
+# Check heteroskedasticity
+bptest(model_step)
+```
+
+```{r}
+# Check normality
+qqnorm(residuals(model_step))
+qqline(residuals(model_step), col = "red")
+```
+
+## 4. Between the models considered, which one demonstrates superior predictive performance?
+
+setup 10-fold cross-validation
+```{r}
+control <- trainControl(method="cv", number=10) 
+```
+
+full model
+```{r}
+model_full_cv <- train(MonthlyIncome ~ .,
+                  data=data,
+                  method="lm",
+                  trControl=control)
+model_full_cv
+```
+
+reduced model
+```{r}
+model_reduced_cv <- train(MonthlyIncome ~ Department + DistanceFromHome + JobLevel + JobRole + SalarySlab + Age + TotalWorkingYears + YearsWithCurrManager,
+                  data=data,
+                  method="lm",
+                  trControl=control)
+model_reduced_cv
+```
+
+stepwise model
+```{r}
+model_step$call
+model_step_cv <- train(MonthlyIncome ~ Age + BusinessTravel + Department + 
+    DistanceFromHome + JobLevel + JobRole + SalarySlab + TotalWorkingYears + 
+    YearsWithCurrManager,
+                  data=data,
+                  method="lm",
+                  trControl=control)
+model_step_cv
+```
+RMSE: Full model > Reduced model > Stepwise model
+Rsquared: Full model < Reduced model < Stepwise model
+MAE: Full model > Reduced model > Stepwise model
+
+Overall Performance: Full model < Reduced model < Stepwise model
