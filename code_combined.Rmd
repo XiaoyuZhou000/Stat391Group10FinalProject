@@ -1,3 +1,15 @@
+library
+```{r}
+library(tidyverse)
+library(lmtest)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(caret)
+library(MASS)
+library(car)
+```
+
 import data and set seed
 ```{r}
 data <- read.csv("./HR_Analytics.csv")
@@ -95,9 +107,6 @@ summary(model_reduced1)
 # Refine the model using stepwise regression
 model_step <- stepAIC(model_full, direction = "both")
 summary(model_step)
-
-
-
 plot(fitted(model_step), residuals(model_step), main="Residuals vs Predicted Values", xlab="Predicted Values", ylab="Residuals")
 abline(h=0, col="red")
 ```
@@ -150,7 +159,7 @@ model_step_cv <- train(MonthlyIncome ~ Age + BusinessTravel + Department +
 model_step_cv
 ```
 RMSE: Full model > Reduced model > Stepwise model
-Rsquared: Full model < Reduced model < Stepwise model
+Rsquared: Full model < Stepwise model < Reduced model
 MAE: Full model > Reduced model > Stepwise model
 
 Overall Performance: Full model < Reduced model < Stepwise model
